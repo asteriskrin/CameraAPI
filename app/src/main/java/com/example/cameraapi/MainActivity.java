@@ -26,6 +26,8 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
 import java.io.ByteArrayOutputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
@@ -87,9 +89,26 @@ public class MainActivity extends AppCompatActivity {
 
                 Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 
-                sendImageToCloud(timestamp.getTime() + ".jpg", getBase64OfPhoto(imageBitmap));
+                String base64String = getBase64OfPhoto(imageBitmap);
+
+                sendImageToCloud(timestamp.getTime() + ".png", base64String, md5Hash(base64String));
             }
         }
+    }
+
+    private String md5Hash(String text) {
+        try {
+            MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+            byte[] array = messageDigest.digest(text.getBytes());
+            StringBuffer stringBuffer = new StringBuffer();
+            for (byte b : array) {
+                stringBuffer.append(Integer.toHexString((b & 0xFF) | 0x100).substring(1, 3));
+            }
+            return stringBuffer.toString();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private String getBase64OfPhoto(Bitmap image) {
@@ -99,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
         return Base64.encodeToString(byteArray, Base64.DEFAULT);
     }
 
-    private void sendImageToCloud(String fileName, String imageData) {
+    private void sendImageToCloud(String fileName, String imageData, String password) {
         RequestQueue queue = Volley.newRequestQueue(this);
 
         StringRequest stringRequest = new StringRequest(Request.Method.POST, URL_IMAGE_POST,
@@ -112,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
                 HashMap<String, String> hashMapParams = new HashMap<>();
                 hashMapParams.put("filename", fileName);
                 hashMapParams.put("imagedata", imageData);
-                hashMapParams.put("password", "123");
+                hashMapParams.put("password", password);
                 return hashMapParams;
             }
         };
