@@ -1,6 +1,7 @@
 package com.example.cameraapi;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -119,13 +120,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void sendImageToCloud(String fileName, String imageData, String password) {
+        ProgressDialog progressDialog = ProgressDialog.show(MainActivity.this, "", "Uploading...", true);
+
         RequestQueue queue = Volley.newRequestQueue(this);
 
         StringRequest stringRequest = new StringRequest(Request.Method.POST, URL_IMAGE_POST,
             response -> {
                 tvBase64OfPhoto.setText("Image has been successfully sent.");
+                progressDialog.dismiss();
             }, error -> {
                 Log.e("IMAGE_SENT", error.toString());
+                progressDialog.dismiss();
         }) {
             protected Map<String, String> getParams() {
                 HashMap<String, String> hashMapParams = new HashMap<>();
